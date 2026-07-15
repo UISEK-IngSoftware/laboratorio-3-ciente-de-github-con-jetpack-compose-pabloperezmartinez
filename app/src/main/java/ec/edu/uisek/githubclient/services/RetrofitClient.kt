@@ -1,8 +1,7 @@
 package ec.edu.uisek.githubclient.services
 
 //import ec.edu.uisek.githubclientcompose.BuildConfig
-import androidx.compose.ui.geometry.isEmpty
-import ec.edu.uisek.githubclient.BuildConfig
+import android.content.Context
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -10,26 +9,37 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
     private const val BASE_URL = "https://api.github.com/"
+    private lateinit var authService: AuthService
+
+    fun init(context: Context) {
+        authService = AuthService(context)
+    }
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val httpClient = OkHttpClient.Builder()
-        .addInterceptor(logging)
-        .addInterceptor { chain ->
-            val token = BuildConfig.GITHUB_TOKEN
-            println("DEBUG_TOKEN: Es vacío? ${token.isEmpty()}") // No imprimas el token completo por seguridad
+    private val httpClient: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .addInterceptor(logging)
+            .addInterceptor { chain ->
+                val token = authService.getToken() ?: ""
 
-            val request = chain.request().newBuilder()
-                .header("Cache-Control", "no-cache, no-store, must-revalidate")
-                .header("Pragma", "no-cache") // Para compatibilidad con HTTP 1.0
-                .header("Expires", "0")
-                .addHeader("Authorization", "Bearer $token") // Asegúrate de que hay un espacio después de Bearer
-                .build()
-            chain.proceed(request)
-        }
-        .build()
+                val requestBuilder = chain.request().newBuilder()
+                    .addHeader("Accept", "application/vnd.github+json")
+                    .addHeader("X-GitHub-Api-Version", "2022-11-28")
+                    .addHeader("Cache-Control", "no-cache, no-store, must-revalidate")
+
+                if (token.isNotBlank()) {
+                    // GitHub requiere "Bearer " para PATs modernos o "token " para antiguos.
+                    // "Bearer" es el estándar actual.
+                    requestBuilder.addHeader("Authorization", "Bearer $token")
+                }
+
+                chain.proceed(requestBuilder.build())
+            }
+            .build()
+    }
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()
