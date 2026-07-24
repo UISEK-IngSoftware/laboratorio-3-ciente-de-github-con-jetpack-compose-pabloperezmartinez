@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -84,33 +85,45 @@ fun RepoForm (
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            OutlinedTextField(
-                value = name,
-                onValueChange = {name = it},
-                label = { Text("Nombre del repositorio") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = description,
-                onValueChange = {description = it},
-                label = { Text("Descripción del repositorio (opcional)") },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 3
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                onClick = { viewModel.createRepo(name, description) },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !name.isBlank()
-            ) {
-                Icon(
-                    imageVector = Icons.Default.CheckCircle,
-                    contentDescription = "Guardar"
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
-                Spacer(Modifier.width(8.dp))
-                Text("Guardar")
+            } else if (errorMsg != null) {
+                Text(
+                    text = errorMsg!!,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            } else {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Nombre del repositorio") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Descripción del repositorio (opcional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Button(
+                    onClick = { viewModel.createRepo(name, description) },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !name.isBlank()
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CheckCircle,
+                        contentDescription = "Guardar"
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Guardar")
+                }
             }
         }
     }

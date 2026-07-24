@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import ec.edu.uisek.githubclient.models.Repository
 import ec.edu.uisek.githubclient.services.RetrofitClient
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,8 +28,9 @@ class RepoListViewModel : ViewModel () {
         viewModelScope.launch {
             _isLoading.value = true
             _errorMsg.value = null
+            delay(1000)
             try {
-                _repos.value = RetrofitClient.apiService.getRepositories()
+                _repos.value = RetrofitClient.apiService.getRepositories(t = System.currentTimeMillis().toString())
             } catch (e: Exception) {
                 _errorMsg.value = "Error al cargar repositorios: ${e.localizedMessage}"
                 e.printStackTrace()
